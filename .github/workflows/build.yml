@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
@@ -78,6 +79,15 @@ jobs:
                   versionCode = 1
                   versionName = "1.0"
               }
+
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
           }
 
           dependencies {
@@ -88,13 +98,23 @@ jobs:
 
           cat > Switcher/app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
+
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-              <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-              <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"/>
-              <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
-              <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+              <uses-permission
+                  android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+              <uses-permission
+                  android:name="android.permission.PACKAGE_USAGE_STATS"/>
+
+              <uses-permission
+                  android:name="android.permission.FOREGROUND_SERVICE"/>
+
+              <uses-permission
+                  android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+
+              <uses-permission
+                  android:name="android.permission.POST_NOTIFICATIONS"/>
 
               <application
                   android:theme="@style/Theme.Switcher"
@@ -106,8 +126,13 @@ jobs:
                       android:exported="true">
 
                       <intent-filter>
-                          <action android:name="android.intent.action.MAIN"/>
-                          <category android:name="android.intent.category.LAUNCHER"/>
+
+                          <action
+                              android:name="android.intent.action.MAIN"/>
+
+                          <category
+                              android:name="android.intent.category.LAUNCHER"/>
+
                       </intent-filter>
 
                   </activity>
@@ -147,14 +172,18 @@ jobs:
 
                   setContentView(R.layout.activity_main)
 
-                  findViewById<Button>(R.id.startButton).setOnClickListener {
+                  findViewById<Button>(
+                      R.id.startButton
+                  ).setOnClickListener {
 
                       if (!Settings.canDrawOverlays(this)) {
 
                           startActivity(
                               Intent(
                                   Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                  Uri.parse("package:$packageName")
+                                  Uri.parse(
+                                      "package:$packageName"
+                                  )
                               )
                           )
 
@@ -164,21 +193,31 @@ jobs:
                       if (!hasUsageAccess()) {
 
                           startActivity(
-                              Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                              Intent(
+                                  Settings.ACTION_USAGE_ACCESS_SETTINGS
+                              )
                           )
 
                           return@setOnClickListener
                       }
 
                       startForegroundService(
-                          Intent(this, SwitcherService::class.java)
+                          Intent(
+                              this,
+                              SwitcherService::class.java
+                          )
                       )
                   }
 
-                  findViewById<Button>(R.id.stopButton).setOnClickListener {
+                  findViewById<Button>(
+                      R.id.stopButton
+                  ).setOnClickListener {
 
                       stopService(
-                          Intent(this, SwitcherService::class.java)
+                          Intent(
+                              this,
+                              SwitcherService::class.java
+                          )
                       )
                   }
               }
@@ -186,8 +225,9 @@ jobs:
               private fun hasUsageAccess(): Boolean {
 
                   val ops =
-                      getSystemService(Context.APP_OPS_SERVICE)
-                              as AppOpsManager
+                      getSystemService(
+                          Context.APP_OPS_SERVICE
+                      ) as AppOpsManager
 
                   return ops.unsafeCheckOpNoThrow(
                       AppOpsManager.OPSTR_GET_USAGE_STATS,
@@ -225,6 +265,7 @@ jobs:
           class SwitcherService : Service() {
 
               private lateinit var windowManager: WindowManager
+
               private var floatingButton: View? = null
 
               override fun onCreate() {
@@ -240,7 +281,9 @@ jobs:
                           .setSmallIcon(
                               android.R.drawable.ic_menu_revert
                           )
-                          .setContentTitle("스위쳐 실행 중")
+                          .setContentTitle(
+                              "스위쳐 실행 중"
+                          )
                           .setContentText(
                               "버튼을 눌러 이전 앱으로 이동"
                           )
@@ -250,7 +293,10 @@ jobs:
                           )
                           .build()
 
-                  startForeground(1001, notification)
+                  startForeground(
+                      1001,
+                      notification
+                  )
 
                   showButton()
               }
@@ -263,8 +309,9 @@ jobs:
                   }
 
                   windowManager =
-                      getSystemService(WINDOW_SERVICE)
-                              as WindowManager
+                      getSystemService(
+                          WINDOW_SERVICE
+                      ) as WindowManager
 
                   val density =
                       resources.displayMetrics.density
@@ -272,28 +319,32 @@ jobs:
                   val size =
                       (56 * density).toInt()
 
-                  val button = TextView(this).apply {
+                  val button =
+                      TextView(this).apply {
 
-                      text = "↔"
-                      textSize = 23f
-                      gravity = Gravity.CENTER
-                      setTextColor(Color.WHITE)
+                          text = "↔"
+                          textSize = 23f
+                          gravity = Gravity.CENTER
 
-                      background =
-                          GradientDrawable().apply {
+                          setTextColor(
+                              Color.WHITE
+                          )
 
-                              shape =
-                                  GradientDrawable.OVAL
+                          background =
+                              GradientDrawable().apply {
 
-                              setColor(
-                                  Color.rgb(
-                                      100,
-                                      90,
-                                      220
+                                  shape =
+                                      GradientDrawable.OVAL
+
+                                  setColor(
+                                      Color.rgb(
+                                          100,
+                                          90,
+                                          220
+                                      )
                                   )
-                              )
-                          }
-                  }
+                              }
+                      }
 
                   val type =
                       if (
@@ -301,14 +352,16 @@ jobs:
                           Build.VERSION_CODES.O
                       ) {
 
-                          WindowManager.LayoutParams
+                          WindowManager
+                              .LayoutParams
                               .TYPE_APPLICATION_OVERLAY
 
                       } else {
 
                           @Suppress("DEPRECATION")
 
-                          WindowManager.LayoutParams
+                          WindowManager
+                              .LayoutParams
                               .TYPE_PHONE
                       }
 
@@ -317,7 +370,8 @@ jobs:
                           size,
                           size,
                           type,
-                          WindowManager.LayoutParams
+                          WindowManager
+                              .LayoutParams
                               .FLAG_NOT_FOCUSABLE,
                           PixelFormat.TRANSLUCENT
                       ).apply {
@@ -338,17 +392,25 @@ jobs:
 
                   var moved = false
 
-                  button.setOnTouchListener { _, event ->
+                  button.setOnTouchListener {
+                      _,
+                      event ->
 
                       when (event.actionMasked) {
 
                           MotionEvent.ACTION_DOWN -> {
 
-                              downX = event.rawX
-                              downY = event.rawY
+                              downX =
+                                  event.rawX
 
-                              startX = params.x
-                              startY = params.y
+                              downY =
+                                  event.rawY
+
+                              startX =
+                                  params.x
+
+                              startY =
+                                  params.y
 
                               moved = false
 
@@ -371,10 +433,12 @@ jobs:
                               }
 
                               params.x =
-                                  startX + dx.toInt()
+                                  startX +
+                                  dx.toInt()
 
                               params.y =
-                                  startY + dy.toInt()
+                                  startY +
+                                  dy.toInt()
 
                               windowManager
                                   .updateViewLayout(
@@ -431,16 +495,20 @@ jobs:
                   val packages =
                       LinkedHashSet<String>()
 
-                  while (events.hasNextEvent()) {
+                  while (
+                      events.hasNextEvent()
+                  ) {
 
-                      events.getNextEvent(event)
+                      events.getNextEvent(
+                          event
+                      )
 
                       if (
                           event.eventType ==
-                              UsageEvents.Event
-                                  .ACTIVITY_RESUMED &&
+                          UsageEvents.Event
+                              .ACTIVITY_RESUMED &&
                           event.packageName !=
-                              packageName
+                          packageName
                       ) {
 
                           packages.remove(
@@ -508,7 +576,8 @@ jobs:
                   floatingButton?.let {
 
                       runCatching {
-                          windowManager.removeView(it)
+                          windowManager
+                              .removeView(it)
                       }
                   }
 
@@ -584,8 +653,14 @@ jobs:
         shell: bash
         run: |
           set -e
+
+          echo "Checking APK..."
+
           ls -lh Switcher/app/build/outputs/apk/debug/
+
           test -f Switcher/app/build/outputs/apk/debug/app-debug.apk
+
+          echo "APK found successfully."
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
